@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScreenForge — App Store Asset Generator CLI</title>
+  <meta name="description" content="Generate all app store assets from your terminal. Icons, splash screens, device frames, ASO metadata — one CLI to rule them all.">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --border: #1e1e2e;
+      --text: #e0e0e8;
+      --text-dim: #6b6b80;
+      --accent: #7c3aed;
+      --accent2: #06b6d4;
+      --gradient: linear-gradient(135deg, #7c3aed, #06b6d4);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 100px 0 60px;
+      position: relative;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-size: 3.2rem;
+      font-weight: 800;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+
+    .hero .tagline {
+      color: var(--text-dim);
+      font-size: 1.1rem;
+      margin-bottom: 32px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 0.8rem;
+      color: var(--accent2);
+      margin-bottom: 24px;
+    }
+
+    .install-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 24px;
+      font-size: 1rem;
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .install-box:hover { border-color: var(--accent); }
+
+    .install-box .prompt { color: var(--accent2); }
+    .install-box .cmd { color: var(--text); }
+    .install-box .copy { color: var(--text-dim); font-size: 0.8rem; }
+
+    /* Terminal Demo */
+    .terminal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 40px 0;
+      overflow: hidden;
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .terminal-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+    }
+
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #febc2e; }
+    .terminal-dot.green { background: #28c840; }
+
+    .terminal-title {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      margin-left: 8px;
+    }
+
+    .terminal-body {
+      padding: 20px;
+      font-size: 0.9rem;
+      line-height: 1.8;
+    }
+
+    .terminal-body .line { margin-bottom: 4px; }
+    .terminal-body .prompt-line::before { content: '$ '; color: var(--accent2); }
+    .terminal-body .output { color: var(--text-dim); }
+    .terminal-body .success { color: #28c840; }
+    .terminal-body .info { color: var(--accent2); }
+
+    /* Features */
+    .features {
+      padding: 60px 0;
+    }
+
+    .features h2 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 40px;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .feature-card .emoji { font-size: 1.6rem; margin-bottom: 12px; }
+    .feature-card h3 { font-size: 1rem; margin-bottom: 8px; color: var(--text); }
+    .feature-card p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; }
+
+    /* Quick Start */
+    .quickstart {
+      padding: 60px 0;
+    }
+
+    .quickstart h2 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 32px;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .steps {
+      display: grid;
+      gap: 16px;
+    }
+
+    .step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .step-num {
+      background: var(--gradient);
+      color: white;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .step code {
+      background: rgba(124,58,237,0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--accent2);
+    }
+
+    .step p { color: var(--text-dim); font-size: 0.9rem; }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 48px 0;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+
+    footer .links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+
+    footer a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    footer a:hover { color: var(--accent2); }
+
+    footer .copy {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      opacity: 0.6;
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 2rem; }
+      .install-box { padding: 10px 16px; font-size: 0.85rem; }
+      .feature-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="badge">v1.0.0 · App Store Assets</div>
+    <h1>📱 ScreenForge</h1>
+    <p class="tagline">All your app store assets, generated from the terminal.</p>
+    <div class="install-box" onclick="navigator.clipboard.writeText('npm install -g screenforge')">
+      <span class="prompt">$</span>
+      <span class="cmd">npm install -g screenforge</span>
+      <span class="copy">📋</span>
+    </div>
+  </section>
+
+  <!-- Terminal Demo -->
+  <div class="terminal">
+    <div class="terminal-header">
+      <div class="terminal-dot red"></div>
+      <div class="terminal-dot yellow"></div>
+      <div class="terminal-dot green"></div>
+      <span class="terminal-title">screenforge</span>
+    </div>
+    <div class="terminal-body">
+      <div class="line prompt-line">screenforge icon app-icon.png --platform all</div>
+      <div class="line success">✔ Generated 47 icons across 4 platform(s) → ./icons</div>
+      <div class="line output">  ios: 1024px, 180px, 167px, 152px, 120px, 87px, 80px, 76px, 60px, 58px, 40px, 29px, 20px</div>
+      <div class="line output">  android: 512px, 432px, 324px, 216px, 162px, 108px</div>
+      <div class="line output">  web: 512px, 384px, 256px, 192px, 180px, 152px, 144px, 128px, 96px, 72px, 64px, 48px, 32px, 16px</div>
+      <div class="line"></div>
+      <div class="line prompt-line">screenforge splash logo.png --platform ios -b "#1a1a2e"</div>
+      <div class="line success">✔ Generated 8 splash screens → ./splashes</div>
+      <div class="line"></div>
+      <div class="line prompt-line">screenforge frame screenshot.png --device iphone-15-pro</div>
+      <div class="line success">✔ Device frame added: iPhone 15 Pro → screenshot-framed.png</div>
+      <div class="line"></div>
+      <div class="line prompt-line">screenforge meta generate -n "MyApp" -d "A productivity tool"</div>
+      <div class="line success">✔ ASO metadata generated!</div>
+      <div class="line info">📱 Title:       MyApp — Smart Productivity</div>
+      <div class="line info">🔑 Keywords:    productivity, planner, tasks, organizer, ...</div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section class="features">
+    <h2>Everything You Need</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="emoji">📐</div>
+        <h3>Icon Generation</h3>
+        <p>One 1024×1024 icon → all sizes for iOS, Android, Web, and favicons. 47+ sizes in seconds.</p>
+      </div>
+      <div class="feature-card">
+        <div class="emoji">🌅</div>
+        <h3>Splash Screens</h3>
+        <p>Generate splash screens for every device size. iPhone, iPad, Android — all covered.</p>
+      </div>
+      <div class="feature-card">
+        <div class="emoji">📱</div>
+        <h3>Device Frames</h3>
+        <p>Wrap screenshots in beautiful device mockups. iPhone 15, Pixel 8, Galaxy S24 and more.</p>
+      </div>
+      <div class="feature-card">
+        <div class="emoji">🤖</div>
+        <h3>AI Metadata</h3>
+        <p>AI-powered ASO optimization. Generate titles, subtitles, descriptions, and keywords.</p>
+      </div>
+      <div class="feature-card">
+        <div class="emoji">✍️</div>
+        <h3>Text Overlays</h3>
+        <p>Add marketing text on screenshots. Customizable fonts, colors, and positioning.</p>
+      </div>
+      <div class="feature-card">
+        <div class="emoji">🌍</div>
+        <h3>Localization</h3>
+        <p>Translate your metadata to any language. AI-powered translations with ASO optimization.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start -->
+  <section class="quickstart">
+    <h2>Quick Start</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <p>Install globally with npm:</p>
+          <code>npm install -g screenforge</code>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <p>Generate all icon sizes from a single image:</p>
+          <code>screenforge icon my-icon.png --platform all</code>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <p>Create splash screens for all devices:</p>
+          <code>screenforge splash logo.png --platform ios</code>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>
+          <p>Add device frames to your screenshots:</p>
+          <code>screenforge frame screenshot.png --device iphone-15-pro</code>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div>
+          <p>Generate ASO-optimized metadata with AI:</p>
+          <code>screenforge meta generate -n "MyApp" -d "A great app"</code>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="links">
+      <a href="https://github.com/magicpro97/screenforge">GitHub</a>
+      <a href="https://www.npmjs.com/package/screenforge">npm</a>
+      <a href="https://github.com/magicpro97/screenforge/blob/main/LICENSE">MIT License</a>
+    </div>
+    <p class="copy">Built by magicpro97 · ScreenForge v1.0.0</p>
+  </div>
+</footer>
+
+</body>
+</html>
