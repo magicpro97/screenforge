@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "target": "screenforge",
+    "target": "screenforge-landing",
     "public": "public",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
   }

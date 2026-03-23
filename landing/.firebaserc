@@ -5,10 +5,11 @@
   "targets": {
     "linh-s-blog": {
       "hosting": {
-        "screenforge": [
-          "screenforge"
+        "screenforge-landing": [
+          "screenforge-landing"
         ]
       }
     }
-  }
+  },
+  "etags": {}
 }
