@@ -26,6 +26,10 @@ export function createIconCommand(): Command {
         }
 
         const metadata = await sharp(input).metadata();
+        if (!metadata.width || !metadata.height) {
+          spinner.fail(chalk.red('Cannot determine image dimensions. File may be corrupt.'));
+          process.exit(1);
+        }
         if (metadata.width !== metadata.height) {
           spinner.warn(chalk.yellow('Warning: Input icon is not square. Results may be distorted.'));
         }

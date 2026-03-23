@@ -82,7 +82,8 @@ Return ONLY valid JSON (no markdown, no code blocks) with these fields:
     const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     return JSON.parse(cleaned) as ASOMetadata;
   } catch {
-    throw new Error(`Failed to parse AI response as JSON. Raw response:\n${response}`);
+    const truncated = response.length > 200 ? response.slice(0, 200) + '...' : response;
+    throw new Error(`Failed to parse AI response as JSON. Raw response:\n${truncated}`);
   }
 }
 
@@ -114,6 +115,7 @@ Return ONLY valid JSON (no markdown, no code blocks) with these fields:
     const translated = JSON.parse(cleaned) as ASOMetadata;
     return { locale: targetLocale, metadata: translated };
   } catch {
-    throw new Error(`Failed to parse AI response as JSON. Raw response:\n${response}`);
+    const truncated = response.length > 200 ? response.slice(0, 200) + '...' : response;
+    throw new Error(`Failed to parse AI response as JSON. Raw response:\n${truncated}`);
   }
 }

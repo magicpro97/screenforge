@@ -82,10 +82,16 @@ export function createTextCommand(): Command {
         const width = metadata.width || 1080;
         const height = metadata.height || 1920;
 
+        const fontSize = parseInt(options.fontSize);
+        if (isNaN(fontSize) || fontSize <= 0) {
+          console.error(chalk.red('Error: font-size must be a positive number'));
+          process.exit(1);
+        }
+
         const textSvg = getTextSVG(text, width, height, {
           position: options.position,
           color: options.color,
-          fontSize: parseInt(options.fontSize),
+          fontSize,
           fontFamily: options.font,
           strokeColor: options.stroke,
         });

@@ -97,6 +97,18 @@ export function createBatchCommand(): Command {
           }
         }
 
+        if (config.frame) {
+          spinner.warn(chalk.yellow(`frame tasks are not yet supported in batch mode. Skipping: frame`));
+        }
+
+        if (config.meta) {
+          spinner.warn(chalk.yellow(`meta tasks are not yet supported in batch mode. Skipping: ${config.meta.appName || 'meta'}`));
+        }
+
+        if (config.text) {
+          spinner.warn(chalk.yellow(`text tasks are not yet supported in batch mode. Skipping: text`));
+        }
+
         console.log(chalk.bold.green('\n✨ Batch processing complete!\n'));
       } catch (error) {
         spinner.fail(chalk.red(`Batch processing failed: ${(error as Error).message}`));

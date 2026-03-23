@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import sharp from 'sharp';
 import { existsSync, mkdirSync } from 'node:fs';
-import { join, basename, extname } from 'node:path';
+import { join, basename, extname, dirname } from 'node:path';
 import { getDeviceFrame, listDeviceFrames, generateFrameSVG } from '../../core/frames.js';
 
 export function createFrameCommand(): Command {
@@ -46,7 +46,7 @@ export function createFrameCommand(): Command {
           `${basename(input, extname(input))}-framed${extname(input) || '.png'}`
         );
 
-        const outputDir = join(outputPath, '..');
+        const outputDir = dirname(outputPath);
         if (!existsSync(outputDir)) {
           mkdirSync(outputDir, { recursive: true });
         }
