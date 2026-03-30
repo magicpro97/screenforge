@@ -1,8 +1,9 @@
+import { generateTextSimple, type AIProviderType } from '@magicpro97/forge-core';
 import { ASOMetadata, LocalizedMetadata, ScreenForgeConfig } from '../types/index.js';
 import { loadConfig } from './config.js';
 
 async function callAI(prompt: string, config: ScreenForgeConfig): Promise<string> {
-  const provider = config.aiProvider || 'gemini';
+  const provider = (config.aiProvider || 'gemini') as AIProviderType;
   const apiKey = config.apiKey;
 
   if (!apiKey) {
@@ -12,45 +13,7 @@ async function callAI(prompt: string, config: ScreenForgeConfig): Promise<string
     );
   }
 
-  if (provider === 'gemini') {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  } else if (provider === 'openai') {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-    return data.choices?.[0]?.message?.content || '';
-  }
-
-  throw new Error(`Unknown AI provider: ${provider}`);
+  return generateTextSimple(provider, apiKey, prompt);
 }
 
 export async function generateMetadata(
