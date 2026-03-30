@@ -98,7 +98,65 @@ export function createBatchCommand(): Command {
         }
 
         if (config.frame) {
-          spinner.warn(chalk.yellow(`frame tasks are not yet supported in batch mode. Skipping: frame`));
+          const frameSpinner = ora('Adding device frames...').start();
+          try {
+            const { getDeviceFrame, generateFrameSVG } = await import('../../core/frames.js');
+            const sharp = (await import('sharp')).default;
+            const { existsSync: fileExists, mkdirSync: mkDir } = await import('node:fs');
+            const { join: joinPath, basename: baseName, extname: extName, dirname: dirName } = await import('node:path');
+
+            const device = config.frame.device || 'iphone-15-pro';
+            const frame = getDeviceFrame(device);
+            if (!frame) {
+              frameSpinner.fail(chalk.red(`Unknown device: ${device}. Skipping frame tasks.`));
+            } else {
+              const outputDir = config.frame.output || './frames';
+              if (!fileExists(outputDir)) {
+                mkDir(outputDir, { recursive: true });
+              }
+
+              let framed = 0;
+              for (const inputPath of config.frame.inputs) {
+                if (!fileExists(inputPath)) {
+                  console.log(chalk.yellow(`  ⚠ File not found, skipping: ${inputPath}`));
+                  continue;
+                }
+
+                const resizedScreenshot = await sharp(inputPath)
+                  .resize(frame.screenWidth, frame.screenHeight, {
+                    fit: 'contain',
+                    background: { r: 0, g: 0, b: 0, alpha: 1 },
+                  })
+                  .toBuffer();
+
+                const frameSvg = generateFrameSVG(frame);
+                const frameSvgBuffer = Buffer.from(frameSvg);
+
+                const framedDevice = await sharp(frameSvgBuffer)
+                  .resize(frame.width, frame.height)
+                  .composite([
+                    {
+                      input: resizedScreenshot,
+                      left: frame.screenX,
+                      top: frame.screenY,
+                    },
+                  ])
+                  .png()
+                  .toBuffer();
+
+                const outputPath = joinPath(
+                  outputDir,
+                  `${baseName(inputPath, extName(inputPath))}-framed.png`,
+                );
+                await sharp(framedDevice).toFile(outputPath);
+                framed++;
+              }
+
+              frameSpinner.succeed(chalk.green(`Device frames added: ${framed}/${config.frame.inputs.length} screenshot(s)`));
+            }
+          } catch (error) {
+            frameSpinner.fail(chalk.red(`Frame generation failed: ${(error as Error).message}`));
+          }
         }
 
         if (config.meta) {

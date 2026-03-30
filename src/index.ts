@@ -8,6 +8,7 @@ import { createFrameCommand } from './cli/commands/frame.js';
 import { createMetaCommand } from './cli/commands/meta.js';
 import { createTextCommand } from './cli/commands/text.js';
 import { createBatchCommand } from './cli/commands/batch.js';
+import { createCompositeCommand } from './cli/commands/composite.js';
 import { createConfigCommand } from './cli/commands/config.js';
 import { createFeatureCommand } from './cli/commands/feature.js';
 
@@ -30,6 +31,7 @@ program.addCommand(createFrameCommand());
 program.addCommand(createMetaCommand());
 program.addCommand(createTextCommand());
 program.addCommand(createBatchCommand());
+program.addCommand(createCompositeCommand());
 program.addCommand(createConfigCommand());
 program.addCommand(createFeatureCommand());
 
