@@ -17,29 +17,57 @@ export function createMetaCommand(): Command {
     .option('-c, --category <category>', 'App category')
     .option('-o, --output <file>', 'Save metadata to JSON file')
     .option('--platform <platform>', 'Target platform (appstore, playstore, both)', 'both')
-    .action(async (options: { name: string; description: string; category?: string; output?: string; platform: string }) => {
-      const spinner = ora('Generating ASO metadata with AI...').start();
+    .option('--variants <count>', 'Generate multiple A/B test variants', '1')
+    .action(async (options: { name: string; description: string; category?: string; output?: string; platform: string; variants: string }) => {
+      const variantCount = Math.min(Math.max(parseInt(options.variants) || 1, 1), 3);
+
+      const VARIANT_ANGLES = [
+        'Focus on SOCIAL PROOF and community',
+        'Focus on UNIQUE FEATURES and innovation',
+        'Focus on EMOTIONAL BENEFITS and lifestyle improvement',
+      ];
+
+      const spinner = ora(`Generating ASO metadata${variantCount > 1 ? ` (${variantCount} A/B variants)` : ''} with AI...`).start();
 
       try {
-        const metadata = await generateMetadata(options.name, options.description, options.category);
-
-        spinner.succeed(chalk.green('ASO metadata generated!\n'));
-
-        console.log(chalk.bold('📱 Title:       ') + chalk.cyan(metadata.title));
-        console.log(chalk.bold('📝 Subtitle:    ') + chalk.cyan(metadata.subtitle));
-        console.log(chalk.bold('📖 Description: ') + chalk.dim(metadata.description.substring(0, 100) + '...'));
-        console.log(chalk.bold('🔑 Keywords:    ') + chalk.yellow(metadata.keywords.join(', ')));
-
-        if (metadata.shortDescription) {
-          console.log(chalk.bold('📋 Short Desc:  ') + chalk.dim(metadata.shortDescription));
-        }
-        if (metadata.promotionalText) {
-          console.log(chalk.bold('🎯 Promo Text:  ') + chalk.dim(metadata.promotionalText));
+        const variants: ASOMetadata[] = [];
+        for (let i = 0; i < variantCount; i++) {
+          const angle = variantCount > 1 ? VARIANT_ANGLES[i] : undefined;
+          if (variantCount > 1) {
+            spinner.text = `Generating variant ${i + 1}/${variantCount}${angle ? ` — ${angle}` : ''}...`;
+          }
+          const metadata = await generateMetadata(options.name, options.description, options.category, angle);
+          variants.push(metadata);
         }
 
-        if (options.output) {
-          writeFileSync(options.output, JSON.stringify(metadata, null, 2), 'utf-8');
-          console.log(chalk.dim(`\nSaved to ${options.output}`));
+        spinner.succeed(chalk.green(`ASO metadata generated!${variantCount > 1 ? ` (${variantCount} variants)` : ''}\n`));
+
+        for (let i = 0; i < variants.length; i++) {
+          const metadata = variants[i];
+
+          if (variantCount > 1) {
+            console.log(chalk.bold.underline(`\n🔀 Variant ${i + 1}: ${VARIANT_ANGLES[i]}\n`));
+          }
+
+          console.log(chalk.bold('📱 Title:       ') + chalk.cyan(metadata.title));
+          console.log(chalk.bold('📝 Subtitle:    ') + chalk.cyan(metadata.subtitle));
+          console.log(chalk.bold('📖 Description: ') + chalk.dim(metadata.description.substring(0, 100) + '...'));
+          console.log(chalk.bold('🔑 Keywords:    ') + chalk.yellow(metadata.keywords.join(', ')));
+
+          if (metadata.shortDescription) {
+            console.log(chalk.bold('📋 Short Desc:  ') + chalk.dim(metadata.shortDescription));
+          }
+          if (metadata.promotionalText) {
+            console.log(chalk.bold('🎯 Promo Text:  ') + chalk.dim(metadata.promotionalText));
+          }
+
+          if (options.output) {
+            const outputFile = variantCount > 1
+              ? options.output.replace(/\.json$/, `-variant-${i + 1}.json`)
+              : options.output;
+            writeFileSync(outputFile, JSON.stringify(metadata, null, 2), 'utf-8');
+            console.log(chalk.dim(`\nSaved to ${outputFile}`));
+          }
         }
 
         console.log('');

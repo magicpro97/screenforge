@@ -17,7 +17,8 @@ export function createSplashCommand(): Command {
     .option('-b, --background <color>', 'Background color (hex)', '#ffffff')
     .option('--contain', 'Fit image inside splash (default: cover)')
     .option('--padding <percent>', 'Padding around logo in percent', '20')
-    .action(async (input: string, options: { platform: string; output: string; background: string; contain?: boolean; padding: string }) => {
+    .option('--gradient <spec>', 'Gradient background (format: from:#color,to:#color)')
+    .action(async (input: string, options: { platform: string; output: string; background: string; contain?: boolean; padding: string; gradient?: string }) => {
       const spinner = ora('Generating splash screens...').start();
 
       try {
@@ -60,14 +61,35 @@ export function createSplashCommand(): Command {
             })
             .toBuffer();
 
-          await sharp({
-            create: {
-              width: splash.width,
-              height: splash.height,
-              channels: 4,
-              background: options.background,
-            },
-          })
+          // Create background — gradient SVG or solid color
+          let backgroundInput: sharp.Sharp;
+          if (options.gradient) {
+            const fromMatch = options.gradient.match(/from:(#[0-9a-fA-F]{3,8})/);
+            const toMatch = options.gradient.match(/to:(#[0-9a-fA-F]{3,8})/);
+            const gradFrom = fromMatch?.[1] || '#667eea';
+            const gradTo = toMatch?.[1] || '#764ba2';
+            const gradSvg = `<svg width="${splash.width}" height="${splash.height}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="splashGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:${gradFrom};stop-opacity:1" />
+      <stop offset="100%" style="stop-color:${gradTo};stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="${splash.width}" height="${splash.height}" fill="url(#splashGrad)" />
+</svg>`;
+            backgroundInput = sharp(Buffer.from(gradSvg)).resize(splash.width, splash.height);
+          } else {
+            backgroundInput = sharp({
+              create: {
+                width: splash.width,
+                height: splash.height,
+                channels: 4,
+                background: options.background,
+              },
+            });
+          }
+
+          await backgroundInput
             .composite([
               {
                 input: resizedLogo,

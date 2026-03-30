@@ -57,14 +57,38 @@ export async function generateMetadata(
   appName: string,
   appDescription: string,
   category?: string,
+  angle?: string,
 ): Promise<ASOMetadata> {
   const config = await loadConfig();
 
-  const prompt = `You are an ASO (App Store Optimization) expert. Generate optimized app store metadata for the following app.
+  let prompt = `You are a world-class ASO copywriter who applies Cialdini's 6 principles of persuasion and the AIDA copywriting framework.
+
+Generate optimized app store metadata following these SCIENTIFIC RULES:
+
+TITLE (max 30 chars): Include primary keyword + benefit signal.
+SUBTITLE (max 30 chars): Complement title with secondary benefit or social proof.
+
+DESCRIPTION (max 4000 chars) — Follow this exact structure:
+1. SOCIAL PROOF HOOK (line 1): Open with credibility — download count, rating, or award.
+2. BENEFIT BULLETS (lines 2-6): Top 5 benefits (not features), each starting with an emoji. Frame as what the USER gains.
+3. AUTHORITY SIGNALS (lines 7-8): Awards, press mentions, expert endorsements, or "Featured by Apple/Google".
+4. SCARCITY/URGENCY CTA (last line): Mild urgency — "Download now" or "Join [X] users today".
+
+KEYWORDS (up to 10): High-intent keywords matching user search behavior. Mix broad + long-tail.
+SHORT DESCRIPTION (max 80 chars): Single compelling benefit statement.
+PROMOTIONAL TEXT (max 170 chars): Time-sensitive or seasonal hook with social proof.
+
+PSYCHOLOGICAL RULES:
+- RECIPROCITY: Emphasize free value before asking for commitment
+- CONSISTENCY: Use language that builds progressive engagement
+- LIKING: Warm, conversational, emotionally resonant tone
+- Never use manipulative or fake claims
+- Benefits over features, always
 
 App Name: ${appName}
 Description: ${appDescription}
 ${category ? `Category: ${category}` : ''}
+${angle ? `\nANGLE DIRECTIVE: ${angle}` : ''}
 
 Return ONLY valid JSON (no markdown, no code blocks) with these fields:
 {

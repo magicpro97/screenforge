@@ -9,6 +9,7 @@ import { createMetaCommand } from './cli/commands/meta.js';
 import { createTextCommand } from './cli/commands/text.js';
 import { createBatchCommand } from './cli/commands/batch.js';
 import { createConfigCommand } from './cli/commands/config.js';
+import { createFeatureCommand } from './cli/commands/feature.js';
 
 const program = new Command();
 
@@ -30,5 +31,6 @@ program.addCommand(createMetaCommand());
 program.addCommand(createTextCommand());
 program.addCommand(createBatchCommand());
 program.addCommand(createConfigCommand());
+program.addCommand(createFeatureCommand());
 
 program.parse();
