@@ -67,6 +67,28 @@ export const DEVICE_FRAMES: DeviceFrame[] = [
     screenHeight: 2340,
     borderRadius: 40,
   },
+  {
+    name: 'Samsung Galaxy S26 Ultra',
+    device: 'galaxy-s26-ultra',
+    width: 1092,
+    height: 2354,
+    screenX: 6,
+    screenY: 8,
+    screenWidth: 1080,
+    screenHeight: 2340,
+    borderRadius: 36,
+  },
+  {
+    name: 'iPhone 17 Pro Max',
+    device: 'iphone-17-pro-max',
+    width: 1334,
+    height: 2882,
+    screenX: 7,
+    screenY: 8,
+    screenWidth: 1320,
+    screenHeight: 2868,
+    borderRadius: 52,
+  },
 ];
 
 export function getDeviceFrame(device: string): DeviceFrame | undefined {
@@ -78,6 +100,19 @@ export function listDeviceFrames(): DeviceFrame[] {
 }
 
 export function generateFrameSVG(frame: DeviceFrame): string {
+  // Ultra-thin bezel rendering for modern near-bezel-less devices
+  if (frame.device === 'galaxy-s26-ultra' || frame.device === 'iphone-17-pro-max') {
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${frame.width}" height="${frame.height}" viewBox="0 0 ${frame.width} ${frame.height}">`
+      + `\n  <!-- Device body — thin metallic border -->`
+      + `\n  <rect x="0" y="0" width="${frame.width}" height="${frame.height}" rx="${frame.borderRadius + 4}" ry="${frame.borderRadius + 4}" fill="#2a2a3e" />`
+      + `\n  <rect x="1" y="1" width="${frame.width - 2}" height="${frame.height - 2}" rx="${frame.borderRadius + 3}" ry="${frame.borderRadius + 3}" fill="#1a1a2e" />`
+      + `\n  <!-- Inner edge -->`
+      + `\n  <rect x="2" y="2" width="${frame.width - 4}" height="${frame.height - 4}" rx="${frame.borderRadius + 2}" ry="${frame.borderRadius + 2}" fill="#111111" />`
+      + `\n  <!-- Screen cutout -->`
+      + `\n  <rect x="${frame.screenX}" y="${frame.screenY}" width="${frame.screenWidth}" height="${frame.screenHeight}" rx="${frame.borderRadius}" ry="${frame.borderRadius}" fill="#000000" />`
+      + `\n</svg>`;
+  }
+
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${frame.width}" height="${frame.height}" viewBox="0 0 ${frame.width} ${frame.height}">
   <defs>
     <linearGradient id="frameGrad" x1="0%" y1="0%" x2="100%" y2="100%">

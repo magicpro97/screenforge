@@ -112,10 +112,11 @@ export function createFrameCommand(): Command {
           mkdirSync(outputDir, { recursive: true });
         }
 
-        // Resize screenshot to fit device screen
+        // Resize screenshot to fit device screen without cropping
         const resizedScreenshot = await sharp(input)
           .resize(frame.screenWidth, frame.screenHeight, {
-            fit: 'cover',
+            fit: 'contain',
+            background: { r: 0, g: 0, b: 0, alpha: 1 },
           })
           .toBuffer();
 
