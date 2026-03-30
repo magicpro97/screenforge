@@ -33,6 +33,13 @@ export function createSplashCommand(): Command {
           mkdirSync(outputDir, { recursive: true });
         }
 
+        const paddingParsed = parseInt(options.padding);
+        if (isNaN(paddingParsed) || paddingParsed < 0 || paddingParsed > 50) {
+          console.error(chalk.red('Error: padding must be a number between 0 and 50'));
+          process.exit(1);
+        }
+        const padding = paddingParsed / 100;
+
         let generated = 0;
         for (const splash of sizes) {
           const platformDir = join(outputDir, splash.platform);
@@ -43,12 +50,6 @@ export function createSplashCommand(): Command {
           const outputPath = join(platformDir, splash.filename);
           spinner.text = `Generating ${splash.name} (${splash.width}x${splash.height})...`;
 
-          const paddingParsed = parseInt(options.padding);
-          if (isNaN(paddingParsed) || paddingParsed < 0 || paddingParsed > 50) {
-            console.error(chalk.red('Error: padding must be a number between 0 and 50'));
-            process.exit(1);
-          }
-          const padding = paddingParsed / 100;
           const logoMaxWidth = Math.round(splash.width * (1 - padding * 2));
           const logoMaxHeight = Math.round(splash.height * (1 - padding * 2));
 
