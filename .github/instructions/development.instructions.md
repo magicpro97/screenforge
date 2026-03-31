@@ -38,3 +38,22 @@ node dist/index.js --help
 node dist/index.js icon --help
 node dist/index.js splash --help
 ```
+
+## Color Analysis & Smart Background
+New modules for color-aware marketing screenshots:
+
+- **`src/core/color-analyzer.ts`** — K-means dominant color extraction using sharp
+  - `extractDominantColors(imagePath, k=5)` → `{ colors, avgLuminance, isDark }`
+- **`src/core/bg-generator.ts`** — Smart gradient backgrounds
+  - `generateSmartBackground(colors, width, height, brandColors?)` → Buffer
+  - isDark app → vibrant brand gradient; isLight → dark gradient
+- **`src/cli/commands/analyze.ts`** — `screenforge analyze <image>` CLI command
+
+### Auto-background in Composite
+The `composite` command supports `--auto-bg` flag and `auto_background: true` in YAML config.
+When enabled and no `background:` is specified for an item, the pipeline:
+1. Extracts dominant colors from the screenshot
+2. Generates a contrasting gradient background
+3. Auto-selects text color for WCAG AA contrast
+
+Color math utilities are in `forge-core/src/color.ts` (pure functions, no sharp dependency).

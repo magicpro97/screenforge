@@ -11,6 +11,7 @@ import { createBatchCommand } from './cli/commands/batch.js';
 import { createCompositeCommand } from './cli/commands/composite.js';
 import { createConfigCommand } from './cli/commands/config.js';
 import { createFeatureCommand } from './cli/commands/feature.js';
+import { createAnalyzeCommand } from './cli/commands/analyze.js';
 
 const program = new Command();
 
@@ -34,5 +35,6 @@ program.addCommand(createBatchCommand());
 program.addCommand(createCompositeCommand());
 program.addCommand(createConfigCommand());
 program.addCommand(createFeatureCommand());
+program.addCommand(createAnalyzeCommand());
 
 program.parse();

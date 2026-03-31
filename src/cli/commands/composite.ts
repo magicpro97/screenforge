@@ -7,6 +7,8 @@ import { join, dirname, resolve } from 'node:path';
 import { parse } from 'yaml';
 import { getDeviceFrame, generateFrameSVG } from '../../core/frames.js';
 import { DeviceFrame } from '../../types/index.js';
+import { extractDominantColors } from '../../core/color-analyzer.js';
+import { generateSmartBackground } from '../../core/bg-generator.js';
 
 // --- YAML config types ---
 
@@ -16,9 +18,18 @@ interface CompositeHeadline {
 
 interface CompositeItem {
   screenshot: string;
-  background: string;
+  background?: string; // optional when auto_background is true
   headline: CompositeHeadline;
   output: string;
+}
+
+interface CompositeDefaults {
+  background_dir?: string;
+  frame_scale: number;
+  text_color: string;
+  font_size: number;
+  auto_background?: boolean;
+  min_contrast_ratio?: number;
 }
 
 interface CompositePlatform {
@@ -32,17 +43,14 @@ interface CompositeConfig {
     name: string;
     colors: {
       primary: string;
-      dark: string;
+      dark?: string;
+      accent?: string;
+      [key: string]: string | undefined;
     };
   };
   screenshots: {
-    defaults: {
-      background_dir: string;
-      frame_scale: number;
-      text_color: string;
-      font_size: number;
-    };
-    [platform: string]: CompositePlatform | Record<string, unknown>;
+    defaults: CompositeDefaults;
+    [platform: string]: CompositePlatform | CompositeDefaults;
   };
   locales: string[];
   output_dir: string;
@@ -126,7 +134,8 @@ export function createCompositeCommand(): Command {
     .argument('<config>', 'Path to YAML config file')
     .option('--dry-run', 'Show what would be generated without processing')
     .option('-o, --output <dir>', 'Override output directory')
-    .action(async (configPath: string, options: { dryRun?: boolean; output?: string }) => {
+    .option('--auto-bg', 'Auto-generate backgrounds based on screenshot colors')
+    .action(async (configPath: string, options: { dryRun?: boolean; output?: string; autoBg?: boolean }) => {
       const spinner = ora('Reading composite config...').start();
 
       try {
@@ -204,24 +213,51 @@ export function createCompositeCommand(): Command {
             const { width: canvasWidth, height: canvasHeight } = job.size;
 
             // 1. Resolve paths relative to config file
-            const bgDir = resolve(configDir, defaults.background_dir);
-            const bgPath = resolve(bgDir, job.item.background);
             const screenshotPath = resolve(configDir, job.item.screenshot);
 
-            if (!existsSync(bgPath)) {
-              jobSpinner.fail(chalk.red(`Background not found: ${bgPath}`));
-              continue;
-            }
             if (!existsSync(screenshotPath)) {
               jobSpinner.fail(chalk.red(`Screenshot not found: ${screenshotPath}`));
               continue;
             }
 
-            // 2. Create canvas with background (cover)
-            const background = await sharp(bgPath)
-              .resize(canvasWidth, canvasHeight, { fit: 'cover' })
-              .png()
-              .toBuffer();
+            // 2. Create canvas with background
+            let background: Buffer;
+            const useAutoBg = options.autoBg || defaults.auto_background;
+
+            if (useAutoBg && !job.item.background) {
+              // Auto-generate background from screenshot colors
+              const colorAnalysis = await extractDominantColors(screenshotPath);
+              const brandColorList = config.brand?.colors
+                ? Object.values(config.brand.colors).filter((c): c is string => typeof c === 'string')
+                : undefined;
+
+              const smartBg = await generateSmartBackground(
+                colorAnalysis,
+                canvasWidth,
+                canvasHeight,
+                brandColorList,
+              );
+              background = smartBg.buffer;
+
+              // Auto text color if set to 'auto'
+              if (defaults.text_color === 'auto') {
+                defaults.text_color = smartBg.textColor;
+              }
+            } else {
+              // Use specified background file
+              const bgDir = defaults.background_dir ? resolve(configDir, defaults.background_dir) : configDir;
+              const bgFile = job.item.background || '';
+              const bgPath = resolve(bgDir, bgFile);
+
+              if (!existsSync(bgPath)) {
+                jobSpinner.fail(chalk.red(`Background not found: ${bgPath}. Use --auto-bg or specify a background.`));
+                continue;
+              }
+              background = await sharp(bgPath)
+                .resize(canvasWidth, canvasHeight, { fit: 'cover' })
+                .png()
+                .toBuffer();
+            }
 
             // 3. Frame the screenshot
             const frame = getDeviceFrame(job.device);
