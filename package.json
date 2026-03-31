@@ -1,6 +1,6 @@
 {
   "name": "screenforge",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "📱 App Store Asset Generator CLI — icons, splash screens, device frames, ASO metadata from your terminal",
   "main": "dist/index.js",
   "type": "module",

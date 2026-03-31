@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ScreenForge — App Store Asset Generator CLI</title>
-  <meta name="description" content="App Store Asset Generator CLI — icons, splash screens, device frames, ASO metadata from your terminal.">
+  <meta name="description" content="App Store Asset Generator CLI — icons, splash screens, device frames, ASO metadata, color-aware marketing screenshots from your terminal.">
   <meta name="keywords" content="app store, screenshots, icons, splash screens, device frames, aso, cli, terminal, open source">
   <meta property="og:title" content="ScreenForge — App Store Asset Generator CLI">
   <meta property="og:description" content="Icons, splash screens, device frames, ASO metadata — all from your terminal.">
@@ -341,7 +341,7 @@
   <div class="container">
     <!-- Hero -->
     <section class="hero">
-      <div class="hero-badge">v1.0.0 · <a href="https://www.npmjs.com/package/screenforge" target="_blank">npm</a> · <a href="https://github.com/magicpro97/screenforge" target="_blank">GitHub</a></div>
+      <div class="hero-badge">v1.1.0 · <a href="https://www.npmjs.com/package/screenforge" target="_blank">npm</a> · <a href="https://github.com/magicpro97/screenforge" target="_blank">GitHub</a></div>
       <h1>📱 <span class="gradient">ScreenForge</span></h1>
       <p class="hero-sub">App Store Asset Generator CLI.<br>Icons · splash screens · device frames · ASO metadata — from your terminal.</p>
 
@@ -414,6 +414,16 @@
           <h3>Localization</h3>
           <p>Translate metadata to any language with AI.</p>
         </div>
+        <div class="feature">
+          <div class="icon">🎨</div>
+          <h3>Color Analysis</h3>
+          <p>Extract dominant colors from screenshots using k-means clustering.</p>
+        </div>
+        <div class="feature">
+          <div class="icon">🌈</div>
+          <h3>Smart Backgrounds</h3>
+          <p>Auto-generate gradient backgrounds that contrast with your app's color tone.</p>
+        </div>
       </div>
     </section>
 
@@ -442,6 +452,14 @@
         <div class="command-item">
           <code>screenforge meta generate -n "MyApp" -d "desc"</code>
           <span>Generate ASO metadata</span>
+        </div>
+        <div class="command-item">
+          <code>screenforge analyze screenshot.png</code>
+          <span>Analyze screenshot colors</span>
+        </div>
+        <div class="command-item">
+          <code>screenforge composite config.yaml --auto-bg</code>
+          <span>Auto-generate contrasting backgrounds</span>
         </div>
       </div>
     </section>
